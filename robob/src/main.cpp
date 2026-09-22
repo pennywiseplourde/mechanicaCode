@@ -1,4 +1,5 @@
 #include "main.h"
+#include <cmath>
 
 /**
  * A callback function for LLEMU's center button.
@@ -82,9 +83,14 @@ void opcontrol() {
 	int portBackMotor;
 	int starFrontMotor;
 	int starBackMotor;
+	int intakeMotor;
+	int portCascadeMotor;
+	int starCascadeMotor;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor});
 	pros::MotorGroup starMG({starFrontMotor, starBackMotor});
+	pros::MotorGroup intake({intakeMotor});
+	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor});
 
 
 	while (false) {
@@ -103,6 +109,9 @@ void opcontrol() {
 	while (true) {
 		int dir = master.get_analog(ANALOG_LEFT_Y); // Gets the forward/back from the left joystick
 		int pivot = master.get_analog(ANALOG_RIGHT_X); //gets the left/right from the right joystick
+
+		pivot = std::sqrt(pivot);
+		pivot = pivot * 10;
 
 		portMG.move(dir - pivot);
 		starMG.move(dir + pivot);
