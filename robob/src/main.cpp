@@ -77,32 +77,40 @@ void autonomous() {}
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
 
-	int portFrontMotor; // All of these need to be changed later to add the actual ports
-	int portBackMotor; // Integer means port, parity means forward(+)/reverse(-)
-	int starFrontMotor;
-	int starBackMotor;
-	int intakeMotor;
-	int portCascadeMotor;
-	int starCascadeMotor;
+	signed char portFrontMotor = -2; // All of these need to be changed later to add the actual ports
+	signed char portBackMotor = -1; // Integer means port, parity means forward(+)/reverse(-)
+	signed char starFrontMotor = 10;
+	signed char starBackMotor = 11;
+	signed char intakeMotor = 20;
+	signed char portCascadeMotor = 19;
+	signed char starCascadeMotor = 18;
+	signed char clawMotor;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
 	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
-	pros::MotorGroup intake({intakeMotor});	// Creates the motor group for the pin intake
+	pros::Motor intake({intakeMotor});	// Creates the motor for the pin intake
 	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
+	pros::Motor claw({clawMotor});
+
+	int port;
+	int star;
 
 
-	while (true) { // Running loop, the code in these brackets will loop until the game ends
+	while (true) { // RuMotorGroupnning loop, the code in these brackets will loop until the game ends
 		int dir = master.get_analog(ANALOG_LEFT_Y); // Gets the forward/back from the left joystick
 		int pivot = master.get_analog(ANALOG_RIGHT_X); //gets the left/right from the right joystick
 
-		pivot = std::sqrt(pivot); // These two lines apply the square root curve to the amount
-		pivot = pivot * 10;       // of pivot, which makes it feel more natural to the driver.
+		port = dir + pivot;
+		star = dir - pivot;
+
+		// pivot = std::sqrt(pivot); // These two lines apply the square root curve to the amount
+		// pivot = pivot * 10;       // of pivot, which makes it feel more natural to the driver.
 
 		/* I use port and starboard (or star for short) when refering to the sides,
 		    because left and right can be ambiguous and confusing*/
 
-		portMG.move(dir - pivot); // Powers the port motors, minus any amount of turning
-		starMG.move(dir + pivot); // Powers the starboard motors, sum any amunt of turning
+		portMG.move(port); // Powers the port motors, minus any amount of turning
+		starMG.move(star); // Powers the starboard motors, sum any amunt of turning
 
 		pros::delay(20); // This marks the polling rate, this programs polls user input every 20ms
 
