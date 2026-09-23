@@ -76,9 +76,10 @@ void autonomous() {}
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
+	pros::Controller partner(pros::E_CONTROLLER_PARTNER); // Make a controller obkect incase of a partner controller
 
 	signed char portFrontMotor = -2; // All of these need to be changed later to add the actual ports
-	signed char portBackMotor = -1; // Integer means port, parity means forward(+)/reverse(-)
+	signed char portBackMotor = -1; // Integer means port, polarity means forward(+)/reversed(-)
 	signed char starFrontMotor = 10;
 	signed char starBackMotor = 11;
 	signed char intakeMotor = 20;
@@ -90,27 +91,76 @@ void opcontrol() {
 	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
 	pros::Motor intake({intakeMotor});	// Creates the motor for the pin intake
 	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
-	pros::Motor claw({clawMotor});
+	pros::Motor claw({clawMotor}); // Creates the motor for the claw
 
-	int port;
+	int port; // Init the variables used during the while loop
 	int star;
+	bool done = false;
+	int dir;
+	int pivot;
+	int L1;
+	int L2;
+	int R1;
+	int R2;
+	int UP;
+	int DOWN;
 
 
-	while (true) { // RuMotorGroupnning loop, the code in these brackets will loop until the game ends
-		int dir = master.get_analog(ANALOG_LEFT_Y); // Gets the forward/back from the left joystick
-		int pivot = master.get_analog(ANALOG_RIGHT_X); //gets the left/right from the right joystick
+	// Settings 
+	int intakeVelocity = 127;
+	int intakeReverseVelocity = -127;
+	int clawUpVelocity = 10;
+	int clawDownVelocity = -10;
+	int cascadeUpVelocity = 50;
+	int cascadeDownVelocity = -50;
+	
 
-		port = dir + pivot;
+
+	while (!done) { // Running loop, the code in these brackets will loop until the game ends
+		dir = master.get_analog(ANALOG_LEFT_Y); // Gets the forward/back from the left joystick
+		pivot = master.get_analog(ANALOG_RIGHT_X); //gets the left/right from the right joystick
+		L1 = master.get_digital(DIGITAL_L1);
+		L2 = master.get_digital(DIGITAL_L2);
+		R1 = master.get_digital(DIGITAL_R1);
+		R2 = master.get_digital(DIGITAL_R2);
+		UP = master.get_digital(DIGITAL_UP);
+		DOWN = master.get_digital(DIGITAL_DOWN);
+
+
+		if (L1) {
+			intake.move(intakeVelocity);
+		} else if (L2) {
+			intake.move(intakeReverseVelocity);
+		}
+
+		if (R1) {
+			claw.move(clawUpVelocity);
+		} else if (R2) {
+			claw.move(clawDownVelocity);
+		} else {
+			claw.brake();
+		}
+
+		if (DOWN) {
+			cascade.move(cascadeDownVelocity);
+		} else if (UP) {
+			cascade.move(cascadeUpVelocity);
+		} else {
+			cascade.brake();
+		}
+
+
+		port = dir + pivot; // the math for driving/turning the drive train.
 		star = dir - pivot;
 
 		// pivot = std::sqrt(pivot); // These two lines apply the square root curve to the amount
 		// pivot = pivot * 10;       // of pivot, which makes it feel more natural to the driver.
 
 		/* I use port and starboard (or star for short) when refering to the sides,
-		    because left and right can be ambiguous and confusing*/
+		because left and right can be ambiguous and confusing*/
 
 		portMG.move(port); // Powers the port motors, minus any amount of turning
-		starMG.move(star); // Powers the starboard motors, sum any amunt of turning
+		starMG.move(star); // Powers the starboard motors, sum any amount of turning
 
 		pros::delay(20); // This marks the polling rate, this programs polls user input every 20ms
 
