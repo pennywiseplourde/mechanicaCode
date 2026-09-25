@@ -86,6 +86,7 @@ void opcontrol() {
 	signed char portCascadeMotor = 19;
 	signed char starCascadeMotor = 18;
 	signed char clawMotor;
+	signed char clawPistonPort;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
 	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
@@ -93,17 +94,21 @@ void opcontrol() {
 	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
 	pros::Motor claw({clawMotor}); // Creates the motor for the claw
 
+	pros::ADIDigitalOut clawPiston({clawPistonPort}); // Creates the piston(s) on the ADI Port
+
 	int port; // Init the variables used during the while loop
 	int star;
 	bool done = false;
 	int dir;
 	int pivot;
-	int L1;
+	int L1; // Controller input variables
 	int L2;
 	int R1;
 	int R2;
 	int UP;
 	int DOWN;
+	int X;
+	int B;
 
 
 	// Settings 
@@ -125,6 +130,8 @@ void opcontrol() {
 		R2 = master.get_digital(DIGITAL_R2);
 		UP = master.get_digital(DIGITAL_UP);
 		DOWN = master.get_digital(DIGITAL_DOWN);
+		X = master.get_digital(DIGITAL_X);
+		B = master.get_digital(DIGITAL_B);
 
 
 		if (L1) {
@@ -133,9 +140,9 @@ void opcontrol() {
 			intake.move(intakeReverseVelocity);
 		}
 
-		if (R1) {
+		if (X) {
 			claw.move(clawUpVelocity);
-		} else if (R2) {
+		} else if (B) {
 			claw.move(clawDownVelocity);
 		} else {
 			claw.brake();
@@ -147,6 +154,12 @@ void opcontrol() {
 			cascade.move(cascadeUpVelocity);
 		} else {
 			cascade.brake();
+		}
+
+		if (R1) {
+			clawPiston.set_value(true);
+		} else if (R2) {
+			clawPiston.set_value(false);
 		}
 
 
