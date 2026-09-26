@@ -114,6 +114,8 @@ void autonomous() {
  */
 void opcontrol() {
 
+	autonomous();
+
 	pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
 	pros::Controller partner(pros::E_CONTROLLER_PARTNER); // Make a controller object incase of a partner controller
 
