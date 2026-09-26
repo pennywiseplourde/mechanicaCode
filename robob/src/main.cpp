@@ -78,15 +78,15 @@ void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
 	pros::Controller partner(pros::E_CONTROLLER_PARTNER); // Make a controller obkect incase of a partner controller
 
-	signed char portFrontMotor = -2; // All of these need to be changed later to add the actual ports
-	signed char portBackMotor = -1; // Integer means port, polarity means forward(+)/reversed(-)
-	signed char starFrontMotor = 10;
-	signed char starBackMotor = 11;
-	signed char intakeMotor = 20;
-	signed char portCascadeMotor = 19;
-	signed char starCascadeMotor = 18;
-	signed char clawMotor;
-	signed char clawPistonPort;
+	signed char portFrontMotor = -16; // All of these need to be changed later to add the actual ports
+	signed char portBackMotor = -17; // Integer means port, polarity means forward(+)/reversed(-)
+	signed char starFrontMotor = 11;
+	signed char starBackMotor = 15;
+	signed char intakeMotor = 13;
+	signed char portCascadeMotor = 12;
+	signed char starCascadeMotor = -14;
+	signed char clawMotor = 18;
+	uint8_t clawPistonPort = 1;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
 	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
@@ -94,7 +94,7 @@ void opcontrol() {
 	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
 	pros::Motor claw({clawMotor}); // Creates the motor for the claw
 
-	pros::ADIDigitalOut clawPiston({clawPistonPort}); // Creates the piston(s) on the ADI Port
+	pros::adi::DigitalOut clawPiston({clawPistonPort}); // Creates the piston(s) on the ADI Port
 
 	int port; // Init the variables used during the while loop
 	int star;
@@ -114,10 +114,10 @@ void opcontrol() {
 	// Settings 
 	int intakeVelocity = 127;
 	int intakeReverseVelocity = -127;
-	int clawUpVelocity = 10;
-	int clawDownVelocity = -10;
-	int cascadeUpVelocity = 50;
-	int cascadeDownVelocity = -50;
+	int clawUpVelocity = 30;
+	int clawDownVelocity = -30;
+	int cascadeUpVelocity = 127;
+	int cascadeDownVelocity = -127;
 	
 
 
@@ -134,27 +134,40 @@ void opcontrol() {
 		B = master.get_digital(DIGITAL_B);
 
 
+		// if L1, Intake out, if L2, Intake out
+		
 		if (L1) {
 			intake.move(intakeVelocity);
 		} else if (L2) {
 			intake.move(intakeReverseVelocity);
+		} else {
+			intake.move(0);
+			intake.brake();
 		}
+
+		// If X, Claw up, if B, Claw down
 
 		if (X) {
 			claw.move(clawUpVelocity);
 		} else if (B) {
 			claw.move(clawDownVelocity);
 		} else {
+			claw.move(0);
 			claw.brake();
 		}
+
+		// If Down, cascade down, if up, cascade up
 
 		if (DOWN) {
 			cascade.move(cascadeDownVelocity);
 		} else if (UP) {
 			cascade.move(cascadeUpVelocity);
 		} else {
+			cascade.move(0);
 			cascade.brake();
 		}
+
+		// R1, Claw clamp, if R2, Claw release
 
 		if (R1) {
 			clawPiston.set_value(true);
