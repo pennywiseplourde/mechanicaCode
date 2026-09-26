@@ -66,9 +66,9 @@ void autonomous() {
 	signed char starFrontMotor = 11;
 	signed char starBackMotor = 15;
 	signed char intakeMotor = 13;
-	signed char portCascadeMotor = 12;
-	signed char starCascadeMotor = -14;
-	signed char clawMotor = 18;
+	signed char portCascadeMotor = -12;
+	signed char starCascadeMotor = 14;
+	signed char clawMotor = -18;
 	uint8_t clawPistonPort = 1;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
@@ -81,13 +81,13 @@ void autonomous() {
 
 	for (int i = 0; i < 2; i++) {
 
-		portMG.move(30);
-		starMG.move(30);
+		portMG.move(80);
+		starMG.move(80);
 
 		pros::delay(600);
 
-		portMG.move(-30);
-		starMG.move(-30);
+		portMG.move(-50);
+		starMG.move(-50);
 
 		pros::delay(600);
 
@@ -122,9 +122,9 @@ void opcontrol() {
 	signed char starFrontMotor = 11;
 	signed char starBackMotor = 15;
 	signed char intakeMotor = 13;
-	signed char portCascadeMotor = 12;
-	signed char starCascadeMotor = -14;
-	signed char clawMotor = 18;
+	signed char portCascadeMotor = -12;
+	signed char starCascadeMotor = 14;
+	signed char clawMotor = -18;
 	uint8_t clawPistonPort = 1;
 
 	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
