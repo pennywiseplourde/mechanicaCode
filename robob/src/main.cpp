@@ -79,17 +79,17 @@ void autonomous() {
 
 	pros::adi::DigitalOut clawPiston({clawPistonPort});
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 
-		portMG.move(127);
-		starMG.move(127);
+		portMG.move(30);
+		starMG.move(30);
 
-		pros::delay(1000);
+		pros::delay(600);
 
-		portMG.move(-127);
-		starMG.move(-127);
+		portMG.move(-30);
+		starMG.move(-30);
 
-		pros::delay(1000);
+		pros::delay(600);
 
 	}
 
