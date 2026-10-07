@@ -1,6 +1,26 @@
 #include "main.h"
 #include <cmath>
 
+pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
+pros::Controller partner(pros::E_CONTROLLER_PARTNER); // Make a controller object incase of a partner controller
+
+signed char portFrontMotor = -16; // All of these need to be changed later to add the actual ports
+signed char portBackMotor = -17; // Integer means port, polarity means forward(+)/reversed(-)
+signed char starFrontMotor = 11;
+signed char starBackMotor = 15;
+signed char intakeMotor = 13;
+signed char portCascadeMotor = 12;
+signed char starCascadeMotor = -14;
+signed char clawMotor = 19;
+signed char clawIntakeMotor = 18;
+
+pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
+pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
+pros::Motor intake({intakeMotor});	// Creates the motor for the pin intake
+pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
+pros::Motor claw({clawMotor}); // Creates the motor for the claw
+pros::Motor clawIntake({clawIntakeMotor});
+
 /**
  * A callback function for LLEMU's center button.
  *
@@ -61,42 +81,34 @@ void competition_initialize() {}
  */
 void autonomous() {
 
-	signed char portFrontMotor = -16; // All of these need to be changed later to add the actual ports
-	signed char portBackMotor = -17; // Integer means port, polarity means forward(+)/reversed(-)
-	signed char starFrontMotor = 11;
-	signed char starBackMotor = 15;
-	signed char intakeMotor = 13;
-	signed char portCascadeMotor = -12;
-	signed char starCascadeMotor = 14;
-	signed char clawMotor = -18;
-	uint8_t clawPistonPort = 1;
+	for (int i = 0; i < 2; i++) { // Repeat twice
 
-	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
-	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
-	pros::Motor intake({intakeMotor});	// Creates the motor for the pin intake
-	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
-	pros::Motor claw({clawMotor}); // Creates the motor for the claw
-
-	pros::adi::DigitalOut clawPiston({clawPistonPort});
-
-	for (int i = 0; i < 2; i++) {
-
-		portMG.move(80);
+		portMG.move(80); // Move the robot forward a couple of inches
 		starMG.move(80);
 
-		pros::delay(600);
+		pros::delay(600); 
 
-		portMG.move(-50);
+		portMG.move(-50); // Move the robot backward a couple of inches
 		starMG.move(-50);
 
 		pros::delay(600);
 
 	}
 
-	portMG.move(0);
+	portMG.move(0); // Stop moving
 	starMG.move(0);
 
-	return;
+	return; 
+}
+
+double srCurveMotor(auto x) {
+
+	x = x / 127;
+	x = sqrt(x);
+	x = x * 127;
+
+	return x;
+
 }
 
 /**
@@ -113,27 +125,6 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-
-	pros::Controller master(pros::E_CONTROLLER_MASTER); // Makes the controller into an object called master, I think. This was automatically generated when I made the project.
-	pros::Controller partner(pros::E_CONTROLLER_PARTNER); // Make a controller object incase of a partner controller
-
-	signed char portFrontMotor = -16; // All of these need to be changed later to add the actual ports
-	signed char portBackMotor = -17; // Integer means port, polarity means forward(+)/reversed(-)
-	signed char starFrontMotor = 11;
-	signed char starBackMotor = 15;
-	signed char intakeMotor = 13;
-	signed char portCascadeMotor = -12;
-	signed char starCascadeMotor = 14;
-	signed char clawMotor = -18;
-	uint8_t clawPistonPort = 1;
-
-	pros::MotorGroup portMG({portFrontMotor, portBackMotor}); // Creates the motor group for the port side
-	pros::MotorGroup starMG({starFrontMotor, starBackMotor}); // Creates the motor group for the star side
-	pros::Motor intake({intakeMotor});	// Creates the motor for the pin intake
-	pros::MotorGroup cascade({portCascadeMotor, starCascadeMotor}); // Creates the motor group for the cascade lift
-	pros::Motor claw({clawMotor}); // Creates the motor for the claw
-
-	pros::adi::DigitalOut clawPiston({clawPistonPort}); // Creates the piston(s) on the ADI Port
 
 	int port; // Init the variables used during the while loop
 	int star;
@@ -153,10 +144,12 @@ void opcontrol() {
 	// Settings 
 	int intakeVelocity = 127;
 	int intakeReverseVelocity = -127;
-	int clawUpVelocity = 30;
-	int clawDownVelocity = -30;
+	int clawUpVelocity = 127;
+	int clawDownVelocity = -80;
 	int cascadeUpVelocity = 127;
 	int cascadeDownVelocity = -127;
+	int clawIntakeVelocity = 127;
+	int clawIntakeReverseVelocity = -127;
 	
 
 
@@ -211,17 +204,22 @@ void opcontrol() {
 		// R1, Claw clamp, if R2, Claw release
 
 		if (R1) {
-			clawPiston.set_value(true);
+			clawIntake.move(clawIntakeVelocity);
 		} else if (R2) {
-			clawPiston.set_value(false);
+			clawIntake.move(clawIntakeReverseVelocity);
+		} else {
+			clawIntake.move(0);
+			clawIntake.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+			clawIntake.brake();
 		}
+
+
+		// pivot = std::round(srCurveMotor(pivot));
 
 
 		port = dir + pivot; // the math for driving/turning the drive train.
 		star = dir - pivot;
 
-		// pivot = std::sqrt(pivot); // These two lines apply the square root curve to the amount
-		// pivot = pivot * 10;       // of pivot, which makes it feel more natural to the driver.
 
 		/* I use port and starboard (or star for short) when refering to the sides,
 		because left and right can be ambiguous and confusing*/
