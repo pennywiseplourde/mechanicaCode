@@ -170,6 +170,10 @@ double srCurveMotor(auto x) {
  */
 void opcontrol() {
 
+	#ifdef MANUAL_AUTO
+		autonomous();
+	#endif
+	
 	int port; // Init the variables used during the while loop
 	int star;
 	bool done = false;
