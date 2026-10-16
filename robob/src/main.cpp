@@ -98,6 +98,50 @@ void autonomous() {
 	portMG.move(0); // Stop moving
 	starMG.move(0);
 
+	int k = 60;
+	int j = 350;
+	int h = -80;
+	int g = 500;
+	int f = 127;
+	int l = 300;
+
+	portMG.move(k);
+	starMG.move(-k);
+
+	pros::delay(j);
+
+	portMG.move(0);
+	starMG.move(0);
+
+	claw.move(f);
+
+	pros::delay(l);
+
+	claw.move(0);
+
+	portMG.move(h);
+	starMG.move(h);
+
+
+	pros::delay(g);
+
+	portMG.move(0); // Stop moving
+	starMG.move(0);
+
+	claw.move(f / 2);
+
+	pros::delay(l / 2);
+
+	claw.move(0);
+	claw.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	claw.brake();
+
+	clawIntake.move(-80);
+
+
+	portMG.move(0); // Stop moving
+	starMG.move(0);
+
 	return; 
 }
 
